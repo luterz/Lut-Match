@@ -1,0 +1,25 @@
+[package]
+name = "lut-match"
+version = "1.0.0"
+edition = "2021"
+authors = ["Luca Terzani"]
+description = "Native desktop app to create 3D LUTs (.cube) for DaVinci Resolve from Rec.709 footage and color reference image or video"
+license = "MIT"
+keywords = ["davinci-resolve", "lut", "color-grading", "video-editing", "cube"]
+categories = ["multimedia::video", "gui"]
+
+[dependencies]
+tao = "0.37"
+wry = "0.57"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+base64 = "0.23"
+rfd = "0.17"
+tiny_http = "0.12"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

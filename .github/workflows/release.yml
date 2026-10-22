@@ -1,0 +1,105 @@
+name: Release Cross-Platform Build (macOS & Windows)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    name: Build macOS Application
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build macOS Release
+        run: |
+          cargo build --release
+          mkdir -p LutMatch.app/Contents/MacOS
+          cp target/release/lut-match LutMatch.app/Contents/MacOS/LutMatch
+          chmod +x LutMatch.app/Contents/MacOS/LutMatch
+          cat << 'EOF' > LutMatch.app/Contents/Info.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>LutMatch</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.lutmatch.studio</string>
+              <key>CFBundleName</key>
+              <string>LutMatch Studio</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>CFBundleShortVersionString</key>
+              <string>1.0.0</string>
+              <key>CFBundleVersion</key>
+              <string>1</string>
+              <key>LSMinimumSystemVersion</key>
+              <string>11.0</string>
+              <key>NSHighResolutionCapable</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+          zip -r LutMatch-macOS.zip LutMatch.app
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LutMatch-macOS
+          path: LutMatch-macOS.zip
+
+  build-windows:
+    name: Build Windows PC Application
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build Windows Release
+        run: |
+          cargo build --release
+          Copy-Item target/release/lut-match.exe LutMatch.exe
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LutMatch-Windows
+          path: LutMatch.exe
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [build-macos, build-windows]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download macOS Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: LutMatch-macOS
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: LutMatch-Windows
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            LutMatch-macOS.zip
+            LutMatch.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
