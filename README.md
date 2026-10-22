@@ -9,6 +9,8 @@
 
 Featuring an ultra-clean **Apple Liquid Light** three-pane interface where you can preview your base footage, the target color reference, and the live color-matched output side by side.
 
+<img width="2674" height="1778" alt="image" src="https://github.com/user-attachments/assets/4c31a858-3f16-4c26-b7c6-7e270868522d" />
+
 ---
 
 ## 🌟 Key Features
